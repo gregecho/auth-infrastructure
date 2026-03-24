@@ -1,0 +1,11 @@
+server:
+  port: 9000
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/auth-server
+
+logging:
+  level:
+    org.springframework.security: DEBUG

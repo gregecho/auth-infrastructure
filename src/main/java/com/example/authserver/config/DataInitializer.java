@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.authserver.grant.MagicCodeGrantAuthenticationToken;
+import com.example.authserver.grant.PasswordGrantAuthenticationToken;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -54,6 +56,8 @@ public class DataInitializer implements CommandLineRunner {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .authorizationGrantType(PasswordGrantAuthenticationToken.PASSWORD)
+                .authorizationGrantType(MagicCodeGrantAuthenticationToken.MAGIC_CODE)
                 .redirectUri("http://localhost:8080/login/oauth2/code/test-client")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)

@@ -215,3 +215,57 @@ The count increments by 1 after each rotation.
 |---|---|
 | `server.port` | `9000` |
 | `spring.data.mongodb.uri` | `mongodb://localhost:27017/auth-server` |
+
+---
+
+## Production / Enterprise TODO
+
+### Security (Critical)
+- [ ] Enforce HTTPS / TLS — server runs plain HTTP
+- [ ] Protect `/magic-code/issue` — add rate limiting and caller verification (API key or internal-network-only)
+- [ ] Encrypt RSA private keys at rest — wrap with AES-GCM or delegate to KMS (AWS KMS, HashiCorp Vault)
+- [ ] Remove hardcoded `admin123` seed — read from env/secrets manager; skip seeding outside dev profile
+- [ ] Prune old RSA keys — add TTL or explicit cleanup after token expiry window to prevent unbounded growth
+- [ ] Enforce refresh token rotation on registered clients (`TokenSettings`)
+- [ ] Add brute-force protection on `/oauth2/token`
+
+### Security (Important)
+- [ ] Add `aud` claim to JWTs so resource servers can verify token audience
+- [ ] Include roles/permissions as custom JWT claims (avoid per-request `/userinfo` calls)
+- [ ] Configure explicit token TTLs via `OAuth2TokenSettings` (don't rely on defaults)
+- [ ] Restrict `test-client` seed to dev profile only
+
+### Reliability & Ops
+- [ ] Add `spring-boot-starter-actuator` with `/actuator/health` liveness + readiness probes
+- [ ] Add Micrometer + Prometheus metrics (token issuance rates, grant type breakdown, key age)
+- [ ] Add distributed tracing (Micrometer Tracing / OpenTelemetry)
+- [ ] Configure MongoDB connection pool size and timeouts in `application.yml`
+- [ ] Configure graceful shutdown (`server.shutdown=graceful`)
+
+### Multi-instance / HA
+- [ ] Fix RSA key init race condition — two instances starting simultaneously can both see `count() == 0`; use a distributed lock (Mongo `findAndModify` upsert or Redisson)
+- [ ] Cache `RotatableJwkSource` — every token signing hits MongoDB; add short-lived in-memory cache with invalidation on rotation
+- [ ] Replace in-memory form-login sessions with Spring Session + Redis or MongoDB for multi-pod deployments
+
+### Observability & Auditability
+- [ ] Structured JSON logging (Logstash encoder) for log aggregation (ELK, Datadog, etc.)
+- [ ] Audit log — record token issuance, rotation events, and failed auth attempts to a structured store
+- [ ] Emit application events on rotation and key expiry for alerting (webhook, SNS, etc.)
+
+### Configuration & Deployment
+- [ ] Separate `application-prod.yml` with secrets externalized (Spring Cloud Config, AWS Parameter Store, k8s Secrets)
+- [ ] Dockerfile + `docker-compose.yml` for local dev
+- [ ] Helm chart or k8s manifests for production
+- [ ] CI/CD pipeline (GitHub Actions) — build, test, image push, deploy
+- [ ] Dependency vulnerability scanning (OWASP dependency-check or Dependabot)
+
+### Client Management
+- [ ] Enable dynamic client registration (`/connect/register`) or build an admin API
+- [ ] Add client secret rotation with expiry
+- [ ] Add client-level token TTL and scope configuration via admin API
+
+### Testing
+- [ ] Integration tests for `password` and `magic_code` grant types against the token endpoint
+- [ ] Unit tests for `RsaKeyServiceImpl` including rotation behavior
+- [ ] Tests for `MagicCodeServiceImpl` (expiry, single-use enforcement)
+- [ ] Load/soak tests for the token endpoint
